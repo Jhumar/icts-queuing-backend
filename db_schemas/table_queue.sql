@@ -5,6 +5,7 @@ CREATE TABLE `queues` (
   `number` int(11) not null,
   `label` char(36) not null,
   `status` enum('pending', 'completed', 'cancelled') default 'pending',
+  `time_elapsed` int(11) default 0,
   `created_at` datetime not null default current_timestamp(),
   `updated_at` datetime default null on update current_timestamp()
 );
