@@ -120,11 +120,7 @@ exports.read = async (req, res, next) => {
         .whereRaw(
           `queues.status = 'pending' AND DATE(queues.created_at) = DATE(current_timestamp())`
         )
-        .orderBy([
-          "queues.window_name",
-          "windows.department",
-          "windows.number",
-        ]);
+        .orderBy(["queues.window_name", "windows.department", "queues.number"]);
 
       if (windows.length > 0) {
         queues = await Promise.all(
