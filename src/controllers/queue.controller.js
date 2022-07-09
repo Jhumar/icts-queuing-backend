@@ -115,6 +115,7 @@ exports.read = async (req, res, next) => {
     } else {
       const windows = await knex
         .distinct("window_id")
+        .select('windows.department')
         .from("queues")
         .join("windows", "queues.window_id", "windows.uuid")
         .whereRaw(
@@ -135,6 +136,8 @@ exports.read = async (req, res, next) => {
                     AND status = 'pending' 
                     AND window_id = '${w.window_id}'
                 )`);
+
+            queue.department = w.department;
 
             return queue;
           })
@@ -269,9 +272,26 @@ exports.windowHistory = async (req, res, next) => {
       })
       .orderBy("updated_at", "DESC");
 
+    let _queues = await Promise.all(
+      queues.map(async (q) => {
+        const [teller] = await knex('users')
+          .select('*')
+          .whereRaw(`
+            uuid = (SELECT teller_id FROM windows WHERE uuid = '${window.uuid}')
+          `);
+
+        delete teller.password;
+
+        return {
+          ...q,
+          teller
+        };
+      })
+    )
+
     res.json({
       message: "Successfully retrieved user history.",
-      sub: queues.map((q) => {
+      sub: _queues.map((q) => {
         const endTime = moment(q.updated_at, "YYYY-MM-DD HH:mm:ss");
         const startTime = moment(endTime).subtract(q.time_elapsed, "seconds");
 
