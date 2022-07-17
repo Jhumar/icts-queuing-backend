@@ -173,3 +173,41 @@ exports.delete = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.set = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { screen } = req.body;
+
+    const [mediaExists] = await knex.select("*").from("medias").where({
+      uuid: id,
+    });
+
+    if (!mediaExists) {
+      throw new ApiClientError("Media does not exists.", 404);
+    }
+
+    await knex("medias").where("slot", screen).update({ slot: null });
+
+    await knex("medias").where("uuid", id).update({ slot: screen });
+
+    res.json({
+      message: "Successfully set the media to screen " + screen + ".",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.readSet = async (req, res, next) => {
+  try {
+    const medias = await knex.select("*").from("medias").whereNot("slot", null);
+
+    res.json({
+      message: "Successfully retrieved medias.",
+      sub: medias,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

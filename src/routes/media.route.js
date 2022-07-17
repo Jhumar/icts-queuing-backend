@@ -18,4 +18,7 @@ Router.post("/media", fileHandler, controller.create);
 Router.patch("/media/:id", controller.edit);
 Router.delete("/media/:id", controller.delete);
 
+Router.get("/media/p/r", controller.readSet);
+Router.patch("/media/:id/set", controller.set);
+
 module.exports = Router;

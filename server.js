@@ -18,6 +18,8 @@ app.use(require("./src/routes/user.route.js"));
 app.use(require("./src/routes/window.route"));
 app.use(require("./src/routes/queue.route"));
 app.use(require("./src/routes/media.route"));
+app.use(require("./src/routes/office.route"));
+app.use(require("./src/routes/settings.route"));
 
 // Use custom error handler express
 app.use((err, req, res, next) => {
