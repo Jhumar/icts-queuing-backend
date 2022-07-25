@@ -69,13 +69,24 @@ exports.read = async (req, res, next) => {
     const { q = "", type = null, with_teller = false } = req.query;
 
     const windows = await knex
-      .select("*")
+      .select(
+        "windows.uuid",
+        "windows.office_id",
+        "windows.name",
+        "windows.department",
+        "windows.teller_id",
+        "windows.created_at",
+        "windows.updated_at"
+      )
       .table("windows")
+      .join("offices", "windows.office_id", "offices.uuid")
       .whereRaw(
         `${
           type
-            ? `type = '${type}'${q.length > 0 ? ` OR name LIKE '%${q}%'` : ""}`
-            : `name LIKE '%${q}%'`
+            ? `offices.uuid = '${type}'${
+                q.length > 0 ? ` OR windows.name LIKE '%${q}%'` : ""
+              }`
+            : `windows.name LIKE '%${q}%'`
         }`
       );
 
@@ -108,6 +119,7 @@ exports.read = async (req, res, next) => {
       sub: windows,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
