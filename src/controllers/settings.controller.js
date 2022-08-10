@@ -25,7 +25,11 @@ exports.update = async (req, res, next) => {
       .where({ name });
 
     if (!nameExists) {
-      throw new ApiClientError("Setting does not exists.", 404);
+      await knex("settings").insert({
+        name,
+        value,
+      });
+      // throw new ApiClientError("Setting does not exists.", 404);
     }
 
     await knex("settings").where("name", name).update({ value });
