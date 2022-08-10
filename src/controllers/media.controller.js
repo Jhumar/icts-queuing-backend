@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require("uuid");
 const ApiClientError = require("../errors/ApiClientError");
 const knex = require("../utils/knex.js");
 
+const { getVideoDurationInSeconds } = require("get-video-duration");
+
 exports.create = async (req, res, next) => {
   try {
     const { file = undefined } = req.files;
@@ -187,12 +189,12 @@ exports.set = async (req, res, next) => {
       throw new ApiClientError("Media does not exists.", 404);
     }
 
-    await knex("medias").where("slot", screen).update({ slot: null });
+    // await knex("medias").where("slot", screen).update({ slot: null });
 
     await knex("medias").where("uuid", id).update({ slot: screen });
 
     res.json({
-      message: "Successfully set the media to screen " + screen + ".",
+      message: "Successfully set the media to screen " + screen || "none" + ".",
     });
   } catch (err) {
     next(err);
@@ -201,11 +203,51 @@ exports.set = async (req, res, next) => {
 
 exports.readSet = async (req, res, next) => {
   try {
-    const medias = await knex.select("*").from("medias").whereNot("slot", null);
+    const screenOne = await knex.select("*").from("medias").where("slot", 1);
+    const screenTwo = await knex.select("*").from("medias").where("slot", 2);
+
+    const slot_one = await Promise.all(
+      [...screenOne].map(async (media) => {
+        let duration = 10;
+
+        try {
+          duration = await getVideoDurationInSeconds(
+            path.resolve(__dirname, "../../uploads", media.path)
+          );
+        } catch (err) {
+        } finally {
+          return {
+            ...media,
+            duration,
+          };
+        }
+      })
+    );
+
+    const slot_two = await Promise.all(
+      [...screenTwo].map(async (media) => {
+        let duration = 10;
+
+        try {
+          duration = await getVideoDurationInSeconds(
+            path.resolve(__dirname, "../../uploads", media.path)
+          );
+        } catch (err) {
+        } finally {
+          return {
+            ...media,
+            duration,
+          };
+        }
+      })
+    );
 
     res.json({
       message: "Successfully retrieved medias.",
-      sub: medias,
+      sub: {
+        slot_one,
+        slot_two,
+      },
     });
   } catch (err) {
     next(err);
