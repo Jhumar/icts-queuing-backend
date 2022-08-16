@@ -115,7 +115,7 @@ exports.read = async (req, res, next) => {
     } else {
       const windows = await knex
         .distinct("window_id")
-        .select('windows.department')
+        .select("windows.department", "windows.office_id")
         .from("queues")
         .join("windows", "queues.window_id", "windows.uuid")
         .whereRaw(
@@ -137,7 +137,12 @@ exports.read = async (req, res, next) => {
                     AND window_id = '${w.window_id}'
                 )`);
 
+            const [office] = await knex("*")
+              .from("offices")
+              .where({ uuid: w.office_id });
+
             queue.department = w.department;
+            queue.office = office;
 
             return queue;
           })
@@ -274,9 +279,7 @@ exports.windowHistory = async (req, res, next) => {
 
     let _queues = await Promise.all(
       queues.map(async (q) => {
-        const [teller] = await knex('users')
-          .select('*')
-          .whereRaw(`
+        const [teller] = await knex("users").select("*").whereRaw(`
             uuid = (SELECT teller_id FROM windows WHERE uuid = '${window.uuid}')
           `);
 
@@ -284,10 +287,10 @@ exports.windowHistory = async (req, res, next) => {
 
         return {
           ...q,
-          teller
+          teller,
         };
       })
-    )
+    );
 
     res.json({
       message: "Successfully retrieved user history.",
