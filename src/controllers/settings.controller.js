@@ -26,6 +26,7 @@ exports.update = async (req, res, next) => {
 
     if (!nameExists) {
       await knex("settings").insert({
+        uuid: uuidv4(),
         name,
         value,
       });
